@@ -10,9 +10,13 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 
+import android.annotation.SuppressLint;
+import android.location.Location;
 import android.os.Bundle;
+import android.widget.Toast;
 
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -25,7 +29,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener, OnMapReadyCallback {
 
     private GoogleMap map;
 
@@ -51,6 +55,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     // Get a handle to the GoogleMap object and display marker.
+    @SuppressLint("MissingPermission")
     @Override
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
@@ -75,7 +80,33 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // 카메라를 위치로 옮긴다.
         map.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(37.52487, 126.92723)));
+
+        // TODO: Before enabling the My Location layer, you must request
+        // location permission from the user. This sample does not include
+        // a request for location permission.
+        map.setMyLocationEnabled(true);
+        map.setOnMyLocationButtonClickListener(this);
+        map.setOnMyLocationClickListener(this);
     }
+
+
+    @Override
+    public void onMyLocationClick(@NonNull Location location) {
+            Toast.makeText(this, "Current location:\n" + location, Toast.LENGTH_LONG)
+            .show();
+            }
+
+    @Override
+    public boolean onMyLocationButtonClick() {
+            Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT)
+            .show();
+            // Return false so that we don't consume the event and the default behavior still occurs
+            // (the camera animates to the user's current position).
+            return false;
+            }
+
+
+
 }
 
 

@@ -11,13 +11,21 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -35,6 +43,10 @@ public class MainActivity extends AppCompatActivity implements GoogleMap.OnMyLoc
 
 
 
+    /*현재 위치 담을 배열 */
+    ArrayList<Double> LatLng = new ArrayList<Double>();
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,9 +58,18 @@ public class MainActivity extends AppCompatActivity implements GoogleMap.OnMyLoc
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        /* 버튼을 클릭하면 위치정보 불러옴 */
+        Button btn_findMarker = (Button) findViewById(R.id.btn_findMarker);
+        btn_findMarker.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
 
+                // startLocationService
+                startLocationService();
 
-
+                findParkingLot();
+            }
+        });
+        /* 버튼을 클릭하면 위치정보 불러옴 */
     }
 
 
@@ -70,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements GoogleMap.OnMyLoc
             // 1. 마커 옵션 설정 (만드는 과정)
             MarkerOptions makerOptions = new MarkerOptions();
             makerOptions // LatLng에 대한 어레이를 만들어서 이용할 수도 있다.
-                    .position(new LatLng( dataArr.get(i).latitude, dataArr.get(i).longitude ))
+                    .position(new LatLng(dataArr.get(i).latitude, dataArr.get(i).longitude))
                     .title(dataArr.get(i).name); // 타이틀.
 
             // 2. 마커 생성 (마커를 나타냄)
@@ -80,33 +101,110 @@ public class MainActivity extends AppCompatActivity implements GoogleMap.OnMyLoc
 
         // 카메라를 위치로 옮긴다.
         map.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(37.52487, 126.92723)));
-
+        /*현재 위치 구하는 부분*/
         // TODO: Before enabling the My Location layer, you must request
         // location permission from the user. This sample does not include
         // a request for location permission.
         map.setMyLocationEnabled(true);
         map.setOnMyLocationButtonClickListener(this);
         map.setOnMyLocationClickListener(this);
+
+
     }
 
 
     @Override
     public void onMyLocationClick(@NonNull Location location) {
-            Toast.makeText(this, "Current location:\n" + location, Toast.LENGTH_LONG)
-            .show();
-            }
+        Toast.makeText(this, "Current location:\n" + location, Toast.LENGTH_LONG)
+                .show();
+    }
 
     @Override
     public boolean onMyLocationButtonClick() {
-            Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT)
-            .show();
-            // Return false so that we don't consume the event and the default behavior still occurs
-            // (the camera animates to the user's current position).
-            return false;
-            }
+        Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT)
+                .show();
+        // Return false so that we don't consume the event and the default behavior still occurs
+        // (the camera animates to the user's current position).
+        return false;
+    }
+
+    /* 현재위치 위도 경도 구하기 */
 
 
+    private void startLocationService() {
 
+        // get manager instance
+        LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        // set listener
+        GPSListener gpsListener = new GPSListener();
+        long minTime = 10000;
+        float minDistance = 0;
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        manager.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER,
+                minTime,
+                minDistance,
+                gpsListener);
+
+        Toast.makeText(getApplicationContext(), "Location Service started.\nyou can test using DDMS.", 2000).show();
+    }
+
+
+    private class GPSListener implements LocationListener {
+
+        public void onLocationChanged(Location location) {
+            //capture location data sent by current provider
+            Double latitude = location.getLatitude();
+            Double longitude = location.getLongitude();
+
+            LatLng.add(latitude);
+            LatLng.add(longitude);
+//            System.out.println(LatLng);
+
+            String msg = "Latitude : "+ latitude + "\nLongitude:"+ longitude;
+            Log.i("GPSLocationService", msg);
+            Toast.makeText(getApplicationContext(), msg, 2000).show();
+
+        }
+
+        public void onProviderDisabled(String provider) {
+        }
+
+        public void onProviderEnabled(String provider) {
+        }
+
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+        }
+
+    }
+    /* 버튼을 클릭하면 위치정보 불러옴 */
+
+    private void findParkingLot() {
+        TestApiData apiData = new TestApiData();
+        ArrayList<TestData> dataArr = apiData.getData();
+
+        System.out.println(dataArr.get(0));
+//        for (int i = 0; i < dataArr.size(); i++) {
+//            double dLat = Math.toRadians(dataArr.get(i).latitude - LatLng.get(0));
+//            double dLon = Math.toRadians(dataArr.get(i).longitude - LatLng.get(1));
+//
+//            double a = Math.sin(dLat/2)* Math.sin(dLat/2)+ Math.cos(Math.toRadians(LatLng.get(0)))* Math.cos(Math.toRadians(dataArr.get(i).latitude))* Math.sin(dLon/2)* Math.sin(dLon/2);
+//            double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+//            double d =EARTH_RADIUS* c * 1000;    // Distance in m
+//            return d;
+//        }
+    }
 }
 
 
@@ -240,3 +338,4 @@ class TestApiData {
     }
 
 }
+

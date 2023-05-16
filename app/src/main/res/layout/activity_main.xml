@@ -1,19 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:map="http://schemas.android.com/apk/res-auto"
-    android:name="com.google.android.gms.maps.SupportMapFragment"
-    android:id="@+id/map"
+
+<FrameLayout android:id="@+id/frame_map"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    map:cameraBearing="0"
-    map:cameraTargetLat="0"
-    map:cameraTargetLng="0"
-    map:cameraTilt="0"
-    map:cameraZoom="5"
-    map:mapType="normal"
-    map:uiCompass="true"
-    map:uiRotateGestures="true"
-    map:uiScrollGestures="true"
-    map:uiTiltGestures="true"
-    map:uiZoomControls="true"
-    map:uiZoomGestures="true"/>
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:map="http://schemas.android.com/apk/res-auto"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:id="@+id/map"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        map:cameraBearing="0"
+        map:cameraTargetLat="0"
+        map:cameraTargetLng="0"
+        map:cameraTilt="0"
+        map:cameraZoom="5"
+        map:mapType="normal"
+        map:uiCompass="true"
+        map:uiRotateGestures="true"
+        map:uiScrollGestures="true"
+        map:uiTiltGestures="true"
+        map:uiZoomControls="true"
+        map:uiZoomGestures="true"/>
+    <!-- 버튼 -->
+    <Button
+        android:id="@+id/btn_findMarker"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_gravity="right|top"
+        android:layout_marginTop="470dp"
+        android:layout_marginRight="8dp"
+        android:background="@android:drawable/btn_default_small" />
+
+</FrameLayout>
+

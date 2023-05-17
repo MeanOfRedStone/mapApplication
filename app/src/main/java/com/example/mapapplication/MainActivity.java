@@ -36,11 +36,15 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class MainActivity extends AppCompatActivity implements GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener, OnMapReadyCallback {
-
     private GoogleMap map;
 
+    /*공영주차장 파싱해서 리스트에 담는 부분 */
+    TestApiData apiData = new TestApiData();
+    ArrayList<TestData> dataArr = apiData.getData();
+    /*공영주차장 파싱해서 리스트에 담는 부분 */
 
 
     /*현재 위치 담을 배열 */
@@ -51,8 +55,8 @@ public class MainActivity extends AppCompatActivity implements GoogleMap.OnMyLoc
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
+        System.out.println("배열 크기");
+        System.out.println(dataArr.size());
         // Get a handle to the fragment and register the callback.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -62,14 +66,41 @@ public class MainActivity extends AppCompatActivity implements GoogleMap.OnMyLoc
         Button btn_findMarker = (Button) findViewById(R.id.btn_findMarker);
         btn_findMarker.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-
-                // startLocationService
-                startLocationService();
+                /*더미 데이터로 현재 위치 대신*/
+//                 startLocationService
+//                startLocationService();
+                /*더미 데이터로 현재 위치 대신*/
+//                final LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+//                Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+//                System.out.println(lm);
+                LatLng.add(37.541);
+                LatLng.add(126.986);
 
                 findParkingLot();
             }
+
+
         });
         /* 버튼을 클릭하면 위치정보 불러옴 */
+
+        /* 버튼을 클릭하면 해당 관할구역에서 가장 가까운 마커 불러옴 */
+        Button btn_findAddress = (Button) findViewById(R.id.btn_findAddress);
+
+        btn_findAddress.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                /*더미 데이터로 현재 위치 대신*/
+
+                LatLng.add(37.541);
+                LatLng.add(126.986);
+
+                String adr = "신사동";
+
+                findAddressParkinglot(adr);
+            }
+
+
+        });
+        /* 버튼을 클릭하면 해당 관할구역에서 가장 가까운 마커 불러옴 */
     }
 
 
@@ -80,24 +111,30 @@ public class MainActivity extends AppCompatActivity implements GoogleMap.OnMyLoc
     @Override
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
+        MarkerOptions makerOptions = new MarkerOptions();
+        makerOptions // LatLng에 대한 어레이를 만들어서 이용할 수도 있다.
+                .position(new LatLng(37.541, 126.986))
+                .title("더미 위치"); // 타이틀.
+
+        // 2. 마커 생성 (마커를 나타냄)
+        map.addMarker(makerOptions);
 
 
-        /*받아온 공공데이터 가져오는 부분*/
-        // 데이터 가져오는 부분 : 데이터는 장소 이름, 위도, 경도로 이루어져 있다.
-        TestApiData apiData = new TestApiData();
-        ArrayList<TestData> dataArr = apiData.getData();
 
-        for (int i = 0; i < dataArr.size(); i++) {
-            // 1. 마커 옵션 설정 (만드는 과정)
-            MarkerOptions makerOptions = new MarkerOptions();
-            makerOptions // LatLng에 대한 어레이를 만들어서 이용할 수도 있다.
-                    .position(new LatLng(dataArr.get(i).latitude, dataArr.get(i).longitude))
-                    .title(dataArr.get(i).name); // 타이틀.
+        /*마커 찍는 loop 밑에 가까운 마커 찾는 기능 구현되서 주석처리*/
+//        for (int i = 0; i < dataArr.size(); i++) {
+//            // 1. 마커 옵션 설정 (만드는 과정)
+////            MarkerOptions makerOptions = new MarkerOptions();
+//            makerOptions // LatLng에 대한 어레이를 만들어서 이용할 수도 있다.
+//                    .position(new LatLng(dataArr.get(i).latitude, dataArr.get(i).longitude))
+//                    .title(dataArr.get(i).name); // 타이틀.
+//
+//            // 2. 마커 생성 (마커를 나타냄)
+//            map.addMarker(makerOptions);
+//        }
+        /*마커 찍는 loop 밑에 가까운 마커 찾는 기능 구현되서 주석처리*/
 
-            // 2. 마커 생성 (마커를 나타냄)
-            map.addMarker(makerOptions);
 
-        }
 
         // 카메라를 위치로 옮긴다.
         map.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(37.52487, 126.92723)));
@@ -138,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements GoogleMap.OnMyLoc
 
         // set listener
         GPSListener gpsListener = new GPSListener();
-        long minTime = 10000;
+        long minTime = 1000000;  //기존값 10000
         float minDistance = 0;
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -172,9 +209,9 @@ public class MainActivity extends AppCompatActivity implements GoogleMap.OnMyLoc
             LatLng.add(longitude);
 //            System.out.println(LatLng);
 
-            String msg = "Latitude : "+ latitude + "\nLongitude:"+ longitude;
-            Log.i("GPSLocationService", msg);
-            Toast.makeText(getApplicationContext(), msg, 2000).show();
+//            String msg = "Latitude : "+ latitude + "\nLongitude:"+ longitude;
+//            Log.i("GPSLocationService", msg);
+//            Toast.makeText(getApplicationContext(), msg, 2000).show();
 
         }
 
@@ -191,19 +228,66 @@ public class MainActivity extends AppCompatActivity implements GoogleMap.OnMyLoc
     /* 버튼을 클릭하면 위치정보 불러옴 */
 
     private void findParkingLot() {
-        TestApiData apiData = new TestApiData();
-        ArrayList<TestData> dataArr = apiData.getData();
+        Location locationA = new Location("pointA");
+        locationA.setLatitude(LatLng.get(0));
+        locationA.setLongitude(LatLng.get(1));
+        float min = 99999;
+        int index = 0;
 
-        System.out.println(dataArr.get(0));
-//        for (int i = 0; i < dataArr.size(); i++) {
-//            double dLat = Math.toRadians(dataArr.get(i).latitude - LatLng.get(0));
-//            double dLon = Math.toRadians(dataArr.get(i).longitude - LatLng.get(1));
-//
-//            double a = Math.sin(dLat/2)* Math.sin(dLat/2)+ Math.cos(Math.toRadians(LatLng.get(0)))* Math.cos(Math.toRadians(dataArr.get(i).latitude))* Math.sin(dLon/2)* Math.sin(dLon/2);
-//            double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-//            double d =EARTH_RADIUS* c * 1000;    // Distance in m
-//            return d;
-//        }
+        for (int i = 0; i < dataArr.size(); i++) {
+            Location locationB = new Location("pointB");
+            locationB.setLatitude(dataArr.get(i).latitude);
+            locationB.setLongitude(dataArr.get(i).longitude);
+            float d = locationA.distanceTo(locationB);
+
+            if(d < min)
+            {
+                min = d;
+                index = i;
+            }
+
+        }
+
+        MarkerOptions makerOptions = new MarkerOptions();
+        makerOptions // LatLng에 대한 어레이를 만들어서 이용할 수도 있다.
+                .position(new LatLng(dataArr.get(index).latitude, dataArr.get(index).longitude))
+                .title(dataArr.get(index).pname); // 타이틀.
+
+        // 2. 마커 생성 (마커를 나타냄)
+        map.addMarker(makerOptions);
+    }
+
+    private void  findAddressParkinglot(String address) {
+        Location locationA = new Location("pointA");
+        locationA.setLatitude(LatLng.get(0));
+        locationA.setLongitude(LatLng.get(1));
+
+        float min = 99999;
+        int index = 0;
+        for (int i = 0; i < dataArr.size(); i++) {
+
+            if(dataArr.get(i).name.contains(address) )
+            {
+                Location locationB = new Location("pointB");
+                locationB.setLatitude(dataArr.get(i).latitude);
+                locationB.setLongitude(dataArr.get(i).longitude);
+                float d = locationA.distanceTo(locationB);
+
+                if (d < min) {
+                    min = d;
+                    index = i;
+                }
+            }
+        }
+
+        MarkerOptions makerOptions = new MarkerOptions();
+        makerOptions // LatLng에 대한 어레이를 만들어서 이용할 수도 있다.
+                .position(new LatLng(dataArr.get(index).latitude, dataArr.get(index).longitude))
+                .title(dataArr.get(index).pname); // 타이틀.
+
+        // 2. 마커 생성 (마커를 나타냄)
+        map.addMarker(makerOptions);
+
     }
 }
 
@@ -211,8 +295,12 @@ public class MainActivity extends AppCompatActivity implements GoogleMap.OnMyLoc
 /*API에서 호출한 데이터를 저장하는 클래스 */
 class TestData {
     String name;
+
+    String pname;
     Double latitude;
     Double longitude;
+
+
 
     public void setName(String name) {
         this.name = name;
@@ -221,6 +309,15 @@ class TestData {
     public String getName() {
         return name;
     }
+
+    public void setPname(String pname) {
+        this.pname = pname;
+    }
+
+    public String getPname() {
+        return pname;
+    }
+
 
     public void setLatitude(Double latitude) {
         this.latitude = latitude;
@@ -242,6 +339,7 @@ class TestData {
     public String toString() {
         return "TestData{" +
                 "name='" + name + '\'' +
+                ", pname=" + pname + '\'' +
                 ", latitude=" + latitude +
                 ", longitude=" + longitude +
                 '}';
@@ -252,17 +350,17 @@ class TestData {
 class TestApiData {
     String apiUrl = "http://openapi.seoul.go.kr:8088/";
     String apiKey = "55514777426768643538504e776b77";
-
     public ArrayList<TestData> getData() {
         //return과 관련된 부분
         ArrayList<TestData> dataArr = new ArrayList<TestData>();
 
         //네트워킹 작업은 메인스레드에서 처리하면 안된다. 따로 스레드를 만들어 처리하자
+
         Thread t = new Thread() {
             @Override
             public void run() {
-                try {
 
+                try {
                     //url과 관련된 부분
                     String fullurl = apiUrl + apiKey + "/xml" + "/GetParkingInfo/1/1000";
                     URL url = new URL(fullurl);
@@ -274,8 +372,8 @@ class TestApiData {
                     parser.setInput(is,"utf-8");
 
                     //xml과 관련된 변수들
-                    boolean bName = false, bLat = false, bLong = false;
-                    String name = "", latitude = "", longitude = "";
+                    boolean bName = false, bLat = false, bLong = false, bPname = false;
+                    String name = "", latitude = "", longitude = "", pname = "";
 
                     //본격적으로 파싱
                     while(parser.getEventType() != XmlPullParser.END_DOCUMENT) {
@@ -290,6 +388,8 @@ class TestApiData {
                                 bLat = true;
                             }else if (parser.getName().equals("LNG")) {// 경도 태그
                                 bLong = true;
+                            }else if (parser.getName().equals("PARKING_NAME")){
+                                bPname = true;
                             }
                         }
                         //내용(텍스트) 확인
@@ -303,14 +403,18 @@ class TestApiData {
                             } else if (bLong) {
                                 longitude = parser.getText();
                                 bLong = false;
+                            } else if (bPname) {
+                                pname = parser.getText();
+                                bPname = false;
                             }
                         }
                         //내용 다 읽었으면 데이터 추가
                         else if (type == XmlPullParser.END_TAG && parser.getName().equals("row")) { // 엔드 태그의 이름 일치 확인
+
                             data.setName(name); // 데이터 네임 확인
                             data.setLatitude(Double.valueOf(latitude));
                             data.setLongitude(Double.valueOf(longitude));
-
+                            data.setPname(pname);
                             dataArr.add(data);
                         }
 
@@ -323,7 +427,6 @@ class TestApiData {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
             }
 
         };
@@ -336,6 +439,8 @@ class TestApiData {
 
         return dataArr;
     }
+
+
 
 }
 
